@@ -52,7 +52,10 @@ CREATE TABLE plots (
     compliance_status ENUM('compliant','warning','violation') DEFAULT 'compliant',
     lat DECIMAL(10,8),                          -- center point for map marker
     lng DECIMAL(11,8),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    grid_x TINYINT UNSIGNED DEFAULT NULL,       -- Fn 1: Grid column (1-based)
+    grid_y TINYINT UNSIGNED DEFAULT NULL,       -- Fn 1: Grid row    (1-based)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_grid_cell (grid_x, grid_y) -- one plot per cell
 );
 
 -- Fn 2, 6: Rental Billing & Leases
@@ -556,11 +559,11 @@ VALUES ('Bob Member', 'bob@garden.com',
         4, 'GATE004');
 
 -- Sample plots
-INSERT INTO plots (plot_code, boundary_coords, area_sqm, sunlight_level, soil_quality, status, lat, lng) VALUES
-('A-01', '[[30.0444,31.2357],[30.0446,31.2357],[30.0446,31.2360],[30.0444,31.2360]]', 24.00, 'full', 'premium', 'occupied', 30.0445, 31.2358),
-('A-02', '[[30.0448,31.2357],[30.0450,31.2357],[30.0450,31.2360],[30.0448,31.2360]]', 18.00, 'partial', 'standard', 'available', 30.0449, 31.2358),
-('B-01', '[[30.0452,31.2357],[30.0454,31.2357],[30.0454,31.2360],[30.0452,31.2360]]', 30.00, 'full', 'premium', 'available', 30.0453, 31.2358),
-('B-02', '[[30.0456,31.2357],[30.0458,31.2357],[30.0458,31.2360],[30.0456,31.2360]]', 20.00, 'shade', 'poor', 'maintenance', 30.0457, 31.2358);
+INSERT INTO plots (plot_code, boundary_coords, area_sqm, sunlight_level, soil_quality, status, lat, lng, grid_x, grid_y) VALUES
+('A-01', '[[30.0444,31.2357],[30.0446,31.2357],[30.0446,31.2360],[30.0444,31.2360]]', 24.00, 'full',    'premium',  'occupied',    30.0445, 31.2358, 1, 1),
+('A-02', '[[30.0448,31.2357],[30.0450,31.2357],[30.0450,31.2360],[30.0448,31.2360]]', 18.00, 'partial',  'standard', 'available',   30.0449, 31.2358, 2, 1),
+('B-01', '[[30.0452,31.2357],[30.0454,31.2357],[30.0454,31.2360],[30.0452,31.2360]]', 30.00, 'full',    'premium',  'available',   30.0453, 31.2358, 1, 2),
+('B-02', '[[30.0456,31.2357],[30.0458,31.2357],[30.0458,31.2360],[30.0456,31.2360]]', 20.00, 'shade',   'poor',     'maintenance', 30.0457, 31.2358, 2, 2);
 
 -- Sample lease for Alice on plot A-01
 INSERT INTO leases (plot_id, user_id, start_date, end_date, base_fee, soil_multiplier, membership_discount, total_fee, status)

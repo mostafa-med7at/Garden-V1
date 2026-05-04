@@ -1,0 +1,145 @@
+/* ============================================================
+   Community Garden — Global Stylesheet (Bootstrap 5 companion)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --green-dark:   #1e5631;
+    --green-mid:    #40916c;
+    --green-light:  #74c69d;
+    --green-pale:   #d8f3dc;
+    --amber:        #e9c46a;
+    --amber-dark:   #c9a227;
+    --coral:        #e76f51;
+    --blue:         #457b9d;
+    --blue-pale:    #e8f4f8;
+    --gray-100:     #f4f6f8;
+    --gray-200:     #e9ecef;
+    --gray-400:     #ced4da;
+    --gray-600:     #6c757d;
+    --gray-800:     #343a40;
+    --white:        #ffffff;
+    --shadow-sm:    0 1px 4px rgba(0,0,0,.07);
+    --shadow-md:    0 4px 16px rgba(0,0,0,.10);
+    --radius:       8px;
+    --radius-lg:    12px;
+    --font:         'Inter','Segoe UI',system-ui,sans-serif;
+}
+
+body { font-family: var(--font); font-size: 15px; color: var(--gray-800); background: var(--gray-100); line-height: 1.6; }
+a { color: var(--green-mid); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Layout ── */
+.main-content { max-width: 1280px; margin: 0 auto; padding: 1.75rem 1.25rem 4rem; }
+
+/* ── Role / karma pills ── */
+.user-badge { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px; text-transform: capitalize; white-space: nowrap; }
+.role-admin      { background: #ffd166; color: #5c3d00; }
+.role-warden     { background: #a8dadc; color: #1d3557; }
+.role-plot_owner { background: var(--green-light); color: var(--green-dark); }
+.role-member     { background: rgba(255,255,255,.2); color: white; }
+.karma-pill { background: rgba(255,255,255,.15); color: white; font-size: 12px; padding: 2px 8px; border-radius: 20px; }
+
+/* ── Stat cards ── */
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.stat-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: .25rem; box-shadow: var(--shadow-sm); }
+.stat-card .stat-value { font-size: 1.9rem; font-weight: 700; color: var(--green-dark); line-height: 1.1; }
+.stat-card .stat-label { font-size: 12px; color: var(--gray-600); }
+.stat-card.accent-amber .stat-value { color: var(--amber-dark); }
+.stat-card.accent-coral .stat-value { color: var(--coral); }
+.stat-card.accent-blue  .stat-value { color: var(--blue); }
+
+/* ── Auth pages ── */
+body.auth-page { background: linear-gradient(135deg,var(--green-dark),var(--green-mid)); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1rem; }
+.auth-card { background:white; border-radius:var(--radius-lg); padding:2.25rem 2.5rem; width:100%; max-width:430px; box-shadow:var(--shadow-md); }
+.auth-logo { font-size:2.8rem; text-align:center; margin-bottom:.5rem; }
+.auth-card h1 { text-align:center; font-size:1.5rem; margin-bottom:.25rem; color:var(--green-dark); }
+.auth-sub  { text-align:center; color:var(--gray-600); font-size:14px; margin-bottom:1.5rem; }
+.auth-footer { text-align:center; font-size:13px; color:var(--gray-600); margin-top:1rem; }
+.demo-creds { margin-top:1rem; padding:.75rem; background:var(--gray-100); border-radius:var(--radius); font-size:12px; color:var(--gray-600); text-align:center; line-height:1.8; }
+
+/* ══════════════════════════════════════════════════════
+   PLOT GRID MAP
+══════════════════════════════════════════════════════ */
+.plot-grid-wrap {
+    display: grid;
+    grid-template-columns: 28px repeat(var(--grid-cols, 6), 1fr);
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+.plot-axis-corner { }
+.plot-axis-label  { display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:var(--gray-600); user-select:none; }
+.plot-axis-col { height:22px; }
+.plot-axis-row { width:28px; }
+
+.plot-cell {
+    min-height: 80px;
+    border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none;
+    transition: transform .15s, box-shadow .15s;
+    padding: 6px 4px; text-align: center;
+    font-weight: 600; border: 2px solid transparent;
+    outline: none;
+}
+.plot-cell:hover, .plot-cell:focus { transform: translateY(-3px) scale(1.04); box-shadow: 0 8px 20px rgba(0,0,0,.18); z-index: 2; }
+.plot-cell:active { transform: scale(.97); }
+
+.plot-code       { font-size: 13px; font-weight: 700; letter-spacing: .3px; }
+.plot-area-label { font-size: 10px; opacity: .85; margin-top: 2px; }
+
+.plot-cell--available   { background: linear-gradient(135deg,#2d9e6b,#52c490); color:#fff; border-color:#1e7a51; box-shadow:0 2px 8px rgba(45,158,107,.35); }
+.plot-cell--occupied    { background: linear-gradient(135deg,#c94040,#e96060); color:#fff; border-color:#a83030; box-shadow:0 2px 8px rgba(201,64,64,.30); }
+.plot-cell--maintenance { background: linear-gradient(135deg,#c07c10,#e9a830); color:#fff; border-color:#9a6008; box-shadow:0 2px 8px rgba(192,124,16,.30); }
+.plot-cell--reserved    { background: linear-gradient(135deg,#2e6da4,#4a8ec4); color:#fff; border-color:#1e5080; box-shadow:0 2px 8px rgba(46,109,164,.30); }
+.plot-cell--empty       { background:#f0f2f4; border:2px dashed #cdd3d9; cursor:default; color:#ccc; }
+.plot-cell--empty:hover, .plot-cell--empty:focus { transform:none; box-shadow:none; }
+
+/* Legend dots */
+.plot-legend-dot { display:inline-block; width:13px; height:13px; border-radius:3px; flex-shrink:0; }
+.bg-available   { background:#2d9e6b; }
+.bg-occupied    { background:#c94040; }
+.bg-maintenance { background:#c07c10; }
+.bg-reserved    { background:#2e6da4; }
+.bg-empty       { background:#f0f2f4; border:1.5px dashed #cdd3d9; }
+
+/* ══════════════════════════════════════════════════════
+   GRID PICKER (plot_create)
+══════════════════════════════════════════════════════ */
+.grid-picker-wrap {
+    display: grid;
+    grid-template-columns: 24px repeat(var(--picker-cols, 8), 1fr);
+    gap: 5px; overflow-x: auto; padding: 4px;
+}
+.grid-picker-label { font-size:10px; font-weight:600; color:#aaa; display:flex; align-items:center; justify-content:center; }
+.grid-picker-cell {
+    min-height: 52px; border-radius:8px; border:2px dashed #cdd3d9;
+    background:#f4f6f8; cursor:pointer; transition:all .12s;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; color:#aaa;
+}
+.grid-picker-cell:hover     { border-color:var(--green-mid); background:var(--green-pale); color:var(--green-dark); }
+.grid-picker-cell.selected  { background:var(--green-mid); border-color:var(--green-dark); color:white; font-weight:700; }
+.grid-picker-cell.taken     { background:#e9ecef; border-color:#bbb; cursor:not-allowed; font-size:9px; color:#888; }
+.grid-picker-cell.taken:hover { background:#e9ecef; border-color:#bbb; color:#888; transform:none; }
+
+/* ── Misc ── */
+.table-wrap { overflow-x:auto; }
+.site-footer { text-align:center; padding:1.5rem; border-top:1px solid var(--gray-200); color:var(--gray-600); font-size:13px; background:var(--white); margin-top:2rem; }
+.dashboard-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:1rem; margin-top:1rem; }
+.module-header { display:flex; align-items:center; gap:.75rem; padding:1rem 1.25rem; background:linear-gradient(90deg,var(--green-pale),var(--white)); border-bottom:1px solid var(--gray-200); }
+.module-header .module-icon { font-size:1.5rem; }
+.module-header h2 { font-size:1.1rem; font-weight:600; color:var(--green-dark); }
+.progress { background:var(--gray-200); border-radius:4px; height:8px; overflow:hidden; }
+.progress-bar { height:100%; background:var(--green-mid); border-radius:4px; transition:width .4s; }
+.progress-bar.danger  { background:var(--coral); }
+.progress-bar.warning { background:var(--amber); }
+
+@media (max-width:576px) {
+    .plot-cell { min-height:58px; }
+    .plot-area-label { display:none; }
+    .plot-code { font-size:11px; }
+}

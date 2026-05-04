@@ -49,6 +49,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
     header('Location: tools.php'); exit;
 }
 
+// ── Cancel reservation ──────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_reservation'])) {
+    $resId = (int)$_POST['reservation_id'];
+    $stmt = $db->prepare("SELECT tool_id FROM tool_reservations WHERE id=? AND user_id=? AND status='confirmed'");
+    $stmt->execute([$resId, $user['id']]);
+    if ($toolId = $stmt->fetchColumn()) {
+        $db->prepare("UPDATE tool_reservations SET status='cancelled' WHERE id=?")->execute([$resId]);
+        $db->prepare("UPDATE tools SET status='available' WHERE id=?")->execute([$toolId]);
+        $db->prepare("INSERT INTO tool_state_log (tool_id,changed_by,old_status,new_status,notes) VALUES (?,?,?,?,?)")
+           ->execute([$toolId,$user['id'],'checked_out','available','Reservation cancelled']);
+        auditLog('reservation_cancelled', 'resources', 'tool_reservations', $resId, "Cancelled reservation $resId");
+        setFlash('success', 'Reservation cancelled.');
+    }
+    header('Location: tools.php'); exit;
+}
+
+// ── Reschedule reservation ──────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reschedule_reservation'])) {
+    $resId     = (int)$_POST['reservation_id'];
+    $slotDate  = $_POST['slot_date'];
+    $slotStart = $_POST['slot_start'];
+    $slotEnd   = $_POST['slot_end'];
+    
+    $stmt = $db->prepare("SELECT tool_id FROM tool_reservations WHERE id=? AND user_id=? AND status='confirmed'");
+    $stmt->execute([$resId, $user['id']]);
+    if ($toolId = $stmt->fetchColumn()) {
+        $conflict = $db->prepare("
+            SELECT id FROM tool_reservations
+            WHERE tool_id=? AND slot_date=? AND status='confirmed' AND id!=?
+              AND NOT (slot_end <= ? OR slot_start >= ?)
+        ");
+        $conflict->execute([$toolId, $slotDate, $resId, $slotStart, $slotEnd]);
+        if ($conflict->fetch()) {
+            setFlash('danger', 'That time slot is already booked. Choose another slot.');
+        } else {
+            $due = $slotDate . ' ' . $slotEnd;
+            $db->prepare("UPDATE tool_reservations SET slot_date=?, slot_start=?, slot_end=?, due_date=? WHERE id=?")
+               ->execute([$slotDate, $slotStart, $slotEnd, $due, $resId]);
+            auditLog('reservation_rescheduled', 'resources', 'tool_reservations', $resId, "Rescheduled to $slotDate");
+            setFlash('success', 'Reservation rescheduled successfully!');
+        }
+    }
+    header('Location: tools.php'); exit;
+}
+
 // ── Fn 16: Return tool & calculate penalty ──────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['return_tool'])) {
     $resId  = (int)$_POST['reservation_id'];
@@ -162,9 +207,36 @@ require_once __DIR__ . '/../../includes/header.php';
                         <button name="return_tool" value="1" class="btn btn-sm btn-primary"
                                 data-confirm="Confirm return of <?= e($r['tool_name']) ?>?">Return Tool</button>
                     </form>
+                    <button class="btn btn-sm btn-secondary" onclick="toggleSection('reschedule-form-<?= $r['id'] ?>')">Reschedule</button>
+                    <form method="POST" style="display:inline">
+                        <input type="hidden" name="reservation_id" value="<?= $r['id'] ?>">
+                        <button name="cancel_reservation" value="1" class="btn btn-sm btn-outline-danger"
+                                data-confirm="Cancel this reservation?">Cancel</button>
+                    </form>
                     <form method="POST" style="display:inline">
                         <input type="hidden" name="damage_tool_id" value="<?= $r['tool_id'] ?>">
                         <button class="btn btn-sm btn-danger" onclick="document.getElementById('damage-form-<?= $r['tool_id'] ?>').style.display='block';return false">Report Damage</button>
+                    </form>
+                </td>
+            </tr>
+            <!-- Reschedule sub-form -->
+            <tr id="reschedule-form-<?= $r['id'] ?>" style="display:none;background:var(--gray-100)">
+                <td colspan="5">
+                    <form method="POST" style="display:flex;gap:.5rem;padding:.5rem;align-items:flex-end">
+                        <input type="hidden" name="reservation_id" value="<?= $r['id'] ?>">
+                        <div class="form-group" style="margin:0">
+                            <label class="small fw-semibold text-muted">New Date</label>
+                            <input type="date" name="slot_date" class="form-control" value="<?= e($r['slot_date']) ?>" required>
+                        </div>
+                        <div class="form-group" style="margin:0">
+                            <label class="small fw-semibold text-muted">Start</label>
+                            <input type="time" name="slot_start" class="form-control" value="<?= e($r['slot_start']) ?>" required>
+                        </div>
+                        <div class="form-group" style="margin:0">
+                            <label class="small fw-semibold text-muted">End</label>
+                            <input type="time" name="slot_end" class="form-control" value="<?= e($r['slot_end']) ?>" required>
+                        </div>
+                        <button name="reschedule_reservation" value="1" class="btn btn-warning">Save New Time</button>
                     </form>
                 </td>
             </tr>
